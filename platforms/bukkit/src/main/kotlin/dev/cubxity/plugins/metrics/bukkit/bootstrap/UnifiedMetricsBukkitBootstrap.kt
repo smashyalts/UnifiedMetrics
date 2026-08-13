@@ -27,8 +27,32 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.nio.file.Path
 
 @Suppress("MemberVisibilityCanBePrivate")
-class UnifiedMetricsBukkitBootstrap : JavaPlugin(), UnifiedMetricsBootstrap {
+// Open, with the lifecycle split out, so a HOST PLUGIN CAN EMBED THIS.
+//
+// Every Bukkit collector takes this concrete type rather than the
+// UnifiedMetricsBootstrap interface: ServerCollection, WorldCollection and
+// TickCollection all need the JavaPlugin itself, for the scheduler and the
+// server handle. That is reasonable for a standalone plugin, and it makes the
+// platform impossible to reuse from another plugin without either this change
+// or a copy of every collector.
+//
+// A server that already ships an agent plugin should not need a second jar just
+// to export metrics: one plugin, one lifecycle, one place for the config.
+// Subclassing gives that and costs the standalone path nothing -- it still
+// enables itself in onEnable exactly as before.
+open class UnifiedMetricsBukkitBootstrap : JavaPlugin(), UnifiedMetricsBootstrap {
     private val plugin = UnifiedMetricsBukkitPlugin(this)
+
+    /**
+     * Starts UnifiedMetrics.
+     *
+     * Called from [onEnable] for the standalone plugin. A subclass that
+     * overrides [onEnable] calls this itself, so it decides whether metrics
+     * come up before or after its own initialisation.
+     */
+    protected fun enableUnifiedMetrics() = this.plugin.enable()
+
+    protected fun disableUnifiedMetrics() = this.plugin.disable()
 
     override val type: PlatformType
         get() = PlatformType.Bukkit
@@ -50,10 +74,10 @@ class UnifiedMetricsBukkitBootstrap : JavaPlugin(), UnifiedMetricsBootstrap {
     override val dispatcher: CoroutineDispatcher = BukkitDispatcher(this)
 
     override fun onEnable() {
-        plugin.enable()
+        this.enableUnifiedMetrics()
     }
 
     override fun onDisable() {
-        plugin.disable()
+        this.disableUnifiedMetrics()
     }
 }
