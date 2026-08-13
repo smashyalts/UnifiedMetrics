@@ -91,7 +91,10 @@ subprojects {
         }
         tasks.findByName("shadowJar")?.also {
             tasks.named("assemble") { dependsOn(it) }
-            tasks.named("signArchives") { dependsOn(it) }
+            // signArchives only exists when signing is configured -- see above.
+            // findByName rather than named(), which throws on a missing task and
+            // fails configuration for the whole project.
+            tasks.findByName("signArchives")?.dependsOn(it)
         }
     }
 }
