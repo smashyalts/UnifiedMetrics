@@ -71,7 +71,23 @@ subprojects {
     }
     afterEvaluate {
         configure<SigningExtension> {
-            sign(configurations["archives"])
+            // Sign only when a key is actually configured.
+            //
+            // Unconditional signing makes the build unusable anywhere that is
+            // not a release machine: any consumer building this from source --
+            // JitPack, a composite build, a fork's CI -- fails on
+            //
+            //   Cannot perform signing task ':unifiedmetrics-api:
+            //   signMavenJavaPublication' because it has no configured signatory
+            //
+            // which has nothing to do with what they were building. Releases are
+            // unaffected: with signing.keyId present this behaves exactly as
+            // before, and `isRequired` still refuses to publish an unsigned
+            // artifact from a machine that meant to sign one.
+            isRequired = project.hasProperty("signing.keyId") || System.getenv("GPG_KEY_ID") != null
+            if (isRequired) {
+                sign(configurations["archives"])
+            }
         }
         tasks.findByName("shadowJar")?.also {
             tasks.named("assemble") { dependsOn(it) }
