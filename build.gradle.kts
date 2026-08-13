@@ -76,6 +76,28 @@ subprojects {
         }
     }
     afterEvaluate {
+        // EVERY MODULE GETS A PUBLICATION, not just the api.
+        //
+        // Upstream publishes `unifiedmetrics-api` and nothing else: the
+        // platforms and drivers ship as shaded plugin jars on the releases page,
+        // so they are never consumed as libraries and never needed a POM. That
+        // is a coherent choice right up until someone embeds a platform in
+        // another plugin, which is what this fork exists to allow.
+        //
+        // Its absence is silent in the worst way -- `publishToMavenLocal` on a
+        // module with no publication reports UP-TO-DATE and writes nothing, so
+        // the build succeeds and the consumer simply cannot resolve it. That
+        // read as a JitPack problem for four commits.
+        //
+        // Guarded, because api/build.gradle.kts defines its own with full POM
+        // metadata for Central, and creating a second `mavenJava` would fail.
+        configure<PublishingExtension> {
+            if (publications.findByName("mavenJava") == null) {
+                publications.create<MavenPublication>("mavenJava") {
+                    from(components["java"])
+                }
+            }
+        }
         configure<SigningExtension> {
             // Sign only when a key is actually configured.
             //
