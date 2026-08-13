@@ -28,8 +28,17 @@ include(modulePrefix + "core")
 include(modulePrefix + platformPrefix + "bukkit")
 //include(modulePrefix + platformPrefix + "minestom")
 include(modulePrefix + platformPrefix + "velocity")
-include(modulePrefix + platformPrefix + "bungee")
-include(modulePrefix + platformPrefix + "fabric")
+// bungee and fabric are not built in this fork.
+//
+// bungee pins a bungeecord-api SNAPSHOT whose repository this project does not
+// declare and which is no longer on Central, so it cannot build from source at
+// all. fabric drags in Loom, whose remapped-mod cache swamps the artifact scan
+// a consumer build runs afterwards -- gradle exits 0 and the consumer still
+// finds nothing.
+//
+// Neither is consumed here. Re-enable an include if that changes.
+//include(modulePrefix + platformPrefix + "bungee")
+//include(modulePrefix + platformPrefix + "fabric")
 
 include(modulePrefix + driverPrefix + "influx")
 include(modulePrefix + driverPrefix + "prometheus")
@@ -42,8 +51,8 @@ val platformsDir = File(rootDir, "platforms")
 project(modulePrefix + platformPrefix + "bukkit").projectDir = File(platformsDir, "bukkit")
 //project(modulePrefix + platformPrefix + "minestom").projectDir = File(platformsDir, "minestom")
 project(modulePrefix + platformPrefix + "velocity").projectDir = File(platformsDir, "velocity")
-project(modulePrefix + platformPrefix + "bungee").projectDir = File(platformsDir, "bungee")
-project(modulePrefix + platformPrefix + "fabric").projectDir = File(platformsDir, "fabric")
+//project(modulePrefix + platformPrefix + "bungee").projectDir = File(platformsDir, "bungee")
+//project(modulePrefix + platformPrefix + "fabric").projectDir = File(platformsDir, "fabric")
 
 val driversDir = File(rootDir, "drivers")
 project(modulePrefix + driverPrefix + "influx").projectDir = File(driversDir, "influx")
