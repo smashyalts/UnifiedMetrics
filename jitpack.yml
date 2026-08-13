@@ -1,0 +1,15 @@
+# Build only the platforms we consume.
+#
+# The full build also compiles the BungeeCord and Fabric platforms, and the
+# BungeeCord one pins net.md-5:bungeecord-api:1.21-R0.3-SNAPSHOT -- a snapshot
+# whose repository this project does not declare and which is no longer on
+# Central. So a from-source build fails on a module nobody asked for.
+#
+# Publishing just bukkit and velocity to the local repository is what JitPack
+# collects, and it keeps a broken sibling module from deciding whether we can
+# consume the two that work. Add a module here if something starts needing it.
+jdk:
+  - openjdk17
+
+install:
+  - ./gradlew :unifiedmetrics-platform-bukkit:publishToMavenLocal :unifiedmetrics-platform-velocity:publishToMavenLocal -x test --no-daemon
