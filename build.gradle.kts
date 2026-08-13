@@ -24,8 +24,14 @@ plugins {
     kotlin("plugin.serialization") version "2.1.20" apply false
     id("com.github.johnrengelman.shadow") version "8.1.1" apply false
 
-    // The fabric-loom plugin must be defined in the root project for it to function properly.
-    id("fabric-loom") version "1.10.5" apply false
+    // fabric-loom is not declared here.
+    //
+    // It has to live in the root project to work at all, so declaring it makes
+    // every consumer of this build resolve it -- and it requires a newer Gradle
+    // than some of them run, which fails configuration before anything is
+    // compiled. With the Fabric platform out of settings.gradle.kts there is
+    // nothing left that needs it.
+    //id("fabric-loom") version "1.10.5" apply false
 }
 
 allprojects {
