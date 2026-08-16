@@ -39,12 +39,18 @@ class EventsCollection(private val bootstrap: UnifiedMetricsVelocityBootstrap) :
     override val collectors: List<Collector> =
         listOf(loginCounter, joinCounter, quitCounter, chatCounter, pingCounter)
 
+    // eventOwner, not bootstrap. Velocity resolves the owner by instance, and
+    // when UnifiedMetrics is embedded in another plugin the bootstrap is not an
+    // instance Velocity constructed -- so registering against it threw
+    // "does not have a container" and every counter in this class was silently
+    // absent behind a single WARN. Unchanged when UnifiedMetrics runs as its
+    // own jar: eventOwner defaults to the bootstrap.
     override fun initialize() {
-        bootstrap.server.eventManager.register(bootstrap, this)
+        bootstrap.server.eventManager.register(bootstrap.eventOwner, this)
     }
 
     override fun dispose() {
-        bootstrap.server.eventManager.unregisterListener(bootstrap, this)
+        bootstrap.server.eventManager.unregisterListener(bootstrap.eventOwner, this)
     }
 
 

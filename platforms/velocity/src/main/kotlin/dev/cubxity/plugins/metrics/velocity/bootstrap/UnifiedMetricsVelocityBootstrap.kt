@@ -50,6 +50,29 @@ class UnifiedMetricsVelocityBootstrap @Inject constructor(
 ) : UnifiedMetricsBootstrap {
     private val plugin = UnifiedMetricsVelocityPlugin(this)
 
+    /**
+     * The object Velocity knows as a plugin, for anything that has to register
+     * an event listener.
+     *
+     * Velocity resolves a listener's owner by INSTANCE: `eventManager.register`
+     * calls `PluginManager.ensurePluginContainer`, which throws if the object
+     * passed was not the instance Velocity itself constructed. That is fine
+     * when UnifiedMetrics is dropped in as its own jar -- this class is the
+     * @Plugin and so is its own owner, which is why this defaults to `this`.
+     *
+     * It is NOT fine when UnifiedMetrics is embedded in another plugin, as the
+     * Shulker proxy agent does: the agent builds this class with `new`, so
+     * Velocity has never seen it and there is no container:
+     *
+     *   IllegalArgumentException: ...UnifiedMetricsVelocityBootstrap does not
+     *   have a container.
+     *
+     * The embedder assigns its own @Plugin instance here. Registration is
+     * deferred until enable, so assigning during the embedder's constructor --
+     * before Velocity has registered it either -- is safe.
+     */
+    var eventOwner: Any = this
+
     override val type: PlatformType
         get() = PlatformType.Velocity
 
